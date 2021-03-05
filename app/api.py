@@ -8,12 +8,25 @@ token = 'AIzaSyDl__LeDHysLbzRCOfT6S5ephdIzgFA8Iw'
 
 next_page_token='QURTSl9pMWlEa1hfaXp3em1rM2xoSERFa2NWTXVWS1l1LVJ4V1JhTWJjV2VxVDNKLWpIbE9XRDFQelkwWDJRc0dMRGI5ZHdwVXdSZlBKVkVIWVBST1FzS0dOX3VNSE5UQ3NydWc0X2xJRG1qRF9hanBOODlGNUZnM0pGYzE2RlBZaVRvMlVOR0RLam9DSXZ2VGhFV090N1drSEVpVzNJTVE3cFZWOVhaUTRKVFhUTGdEV2N5SjgxV1ZUekxUSjZwNjhYMjJvME1CaTdzR2xKM2FoOVgxLTBQSmpRRWNJSWx3MzFVMnotb3UyUUZRNXkzQXk3Tkh0WkFLSHgxSmhaNHJLdWpJYlpXRUZYd2Z3Y1BYZ0NfLUdDZ0dhNXlQbUpVQklObklPUTkxTmsyTTlUSlpSUjhYdktqa0ludk12bElBcDA='
 
+
+class SaveComments:
+	def __get__(self,instance, owner):
+		return self.__value
+
+	def __set__(self, instance, value):
+		self.__value = value
+
+	def __delete__(self,obg):
+		del self.__value
+
 class Api:
+	comments = SaveComments()
+	
 	def __init__(self,url=None,n=None):
 		self.videoId = re.findall(r'\.(com|be)/(watch\?v=|embed/|v/|.+\?v=)?([^&=%\?]{11})',url)[0][-1]
 		self.token = token
 		self.n = n 
-		self._url_cache = {}
+		self.comments = None
 	
 	def get_data(self,videoId,n):
 		print('Начала работать get_data')
@@ -89,9 +102,9 @@ class Api:
 
 	def get_all_comments(self):
 		print('Начала работать get_text')
-		
+		self.comments = self.parse_data()
 		print('get_text отработала')
-		return self.parse_data()
+		return self.comments
 
 	# def filter_comment(self,comments,pattern=None):
 		# print(comments)

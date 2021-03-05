@@ -3,22 +3,54 @@
 
 
 {% block content %}
-  <div class="right_col" role="main">
-    <div class="row">
-      <div class="col-md-12 col-sm-12 col-xs-12">
-        <div class="dashboard_graph">
-          <div style="width: 100%; min-height:800px;" >
-            <iframe 
-              noresize='noresize' 
-              style='position: absolute; background: transparent; width: 95%; height:100%;' 
-              src={{ dash_url }}
-              frameborder="0">
-            </iframe>
-          </div>
-          <div class="clearfix"></div>
-        </div>
+
+<form action="{{ url_for('dash.app1_template') }}" method="POST">
+  <input class="form-control" name = 'url' type="text">
+  <input class="form-control" name = 'n' type="text">
+  <button type="submit" class="btn btn-primary">Sign in</button>
+
+</form>
+
+<iframe 
+  noresize='noresize' 
+  style='' 
+  src={{ dash_url }}
+  frameborder="0">
+</iframe>
+
+<form  method="GET">
+
+  <div class="container">
+    <div class="row justify-content-center align-items-center mt-3 col-11">
+      <div class="form-group "> 
+        <label class="text-light mr-3">Шаблон</label>
+        <input class="form-control " type="text" name="q" value="{{ request.args.get('q', '') }}"> 
       </div>
     </div>
   </div>
+
+</form>
+
+<div class="container-fluid ">
+  <div class="container col-8">
+     <div class="row text-center ">
+    {%for comment in comments%}
+        <div class="card mb-3 ml-2 mt-5 bg-light text-dark" style="width: 500px">
+          <div class="col">
+            <div class="card-body" >
+              <img  src={{comment.authorProfileImageUrl}} alt="Card image cap">
+              <h5 class="card-title">{{comment.userName}}</h5>
+              <p class="card-text">{{comment.text}}</p>
+              <p class="card-text">TДата: {{comment.datePublish}}</p>
+              <p class="card-text">Лайки: {{comment.likeCount}}</p>
+
+            </div>
+          </div>
+        </div>
+      {%endfor%}
+    </div> 
+  </div>
+</div>
+</div>
 {% endblock content %}
 
