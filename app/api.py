@@ -6,9 +6,6 @@ import pandas as pd
 import plotly.express as px
 token = 'AIzaSyDl__LeDHysLbzRCOfT6S5ephdIzgFA8Iw'
 
-next_page_token='QURTSl9pMWlEa1hfaXp3em1rM2xoSERFa2NWTXVWS1l1LVJ4V1JhTWJjV2VxVDNKLWpIbE9XRDFQelkwWDJRc0dMRGI5ZHdwVXdSZlBKVkVIWVBST1FzS0dOX3VNSE5UQ3NydWc0X2xJRG1qRF9hanBOODlGNUZnM0pGYzE2RlBZaVRvMlVOR0RLam9DSXZ2VGhFV090N1drSEVpVzNJTVE3cFZWOVhaUTRKVFhUTGdEV2N5SjgxV1ZUekxUSjZwNjhYMjJvME1CaTdzR2xKM2FoOVgxLTBQSmpRRWNJSWx3MzFVMnotb3UyUUZRNXkzQXk3Tkh0WkFLSHgxSmhaNHJLdWpJYlpXRUZYd2Z3Y1BYZ0NfLUdDZ0dhNXlQbUpVQklObklPUTkxTmsyTTlUSlpSUjhYdktqa0ludk12bElBcDA='
-
-
 class SaveComments:
 	def __get__(self,instance, owner):
 		return self.__value
@@ -19,39 +16,34 @@ class SaveComments:
 	def __delete__(self,obg):
 		del self.__value
 
+
 class Api:
 	comments = SaveComments()
-	
-	def __init__(self,url=None,n=None):
+
+	def __init__(self,url,maxResults,parentId=None):
 		self.videoId = re.findall(r'\.(com|be)/(watch\?v=|embed/|v/|.+\?v=)?([^&=%\?]{11})',url)[0][-1]
 		self.token = token
-		self.n = n 
+		self.maxResults = maxResults 
 		self.comments = None
-	
-	def get_data(self,videoId,n):
+
+	def get_data(self,maxResults,videoId=None,parentId=None,pageToken=None):
 		print('Начала работать get_data')
 		youtube = build('youtube','v3', developerKey=token)
-		results = youtube.commentThreads().list(
-												pageToken = 'QURTSl9pMlJ6TUNuSkl4Qzg0QmJ1QlFmaVg3eENISGhoUmFKZjNQVFVjaFBDeHZDYmFLVWVoenYtcS1GWTNBTTd0RWhGS0c0MkpJNTV5cXVlUlpyTGhpT1ZwaHVRc3pzSmhQLTAwWWEzZmg0M3NCX1h3SUx3c09CMHBnWEdkeHVNV2pWcktBdHllNXE1aUdjY3J6OFU2TGlqcGIwYlIzaTFWQzN2bFJEemFYYVZCT3pBRGhqd2JtX3hNX3RoT28wUnN6VFFVNlFzS0YxN3FHRHB6aEJXNXZzbHkwVlhFb3ZrMUJqMlA4SDlWdERXLWxYcFloRVhTMTRJellxTnJjOU9JTWFEc21yVVVSeVNXc094UFlpaVNZVjNmMXNkNEdPVEZrbDFGSjItYkZXYTU5NjRKUUZ4b1Baa0F2QmRMd2NXbkMxazI5X0R3',
-												part="snippet,replies",
+		results = youtube.commentThreads().list(pageToken = pageToken,
+												part="snippet",
 												videoId=self.videoId,
 												order='relevance',
-												maxResults = self.n
+												maxResults = self.maxResults,
+												textFormat = 'plainText'
 												).execute()
-		print()
 		print('get_data отработала')
 		return results
 
 	def parse_data(self):
 		print('начала работать parse_data')
 		comment = []
-		# if self.videoId in self._url_cache:
-		# 	print('Сработало кеширование')
-		# 	text = self._url_cache[videoId]
-		# else:
-		text = self.get_data(self.videoId,self.n)
-		for item in text['items']:
-			# print(item['snippet']['topLevelComment']['snippet']['textDisplay'])
+		data = self.get_data(self.videoId,self.maxResults)
+		for item in data["items"]:
 			text = item['snippet']['topLevelComment' ]['snippet']['textDisplay']
 			userName = item['snippet']['topLevelComment' ]['snippet']['authorDisplayName']
 			authorChannelUrl =  item['snippet']['topLevelComment' ]['snippet']['authorChannelUrl']
@@ -68,24 +60,88 @@ class Api:
 				'likeCount':likeCount,
 				'authorProfileImageUrl':authorProfileImageUrl
 				})
-		print('parse_data отработала')
+			# print('До totalReplyCount'+'-'*50)
+
+			# totalReplyCount = item["snippet"]['totalReplyCount']
+			# if totalReplyCount > 0:
+			# 	parent = item["snippet"]['topLevelComment']["id"]
+			# 	# data2 = self.get_data(maxResults=100,parentId=parent)
+			# 	data2 = build('youtube','v3', developerKey=token).comments().list(part='snippet',
+	  #           																  maxResults='100',
+	  #           																  parentId=parent,
+	  #           																  textFormat="plainText"
+	  #           																  ).execute()
+			# 	for item in data2["items"]:
+			# 		comment.append(item)
+
+			# 		text = item['snippet']['textDisplay']
+			# 		userName = item['snippet']['authorDisplayName']
+			# 		authorChannelUrl =  item['snippet']['authorChannelUrl']
+			# 		authorChannelId = item['snippet']['authorChannelId']['value']
+			# 		likeCount = item['snippet']['likeCount']
+			# 		datePublish =  item['snippet']['publishedAt']
+			# 		authorProfileImageUrl = item['snippet']['authorProfileImageUrl']
+			# 		comment.append({
+			# 			'text':text,
+			# 			'userName':userName,
+			# 			'authorChannelId':authorChannelId,
+			# 			'authorChannelUrl':authorChannelUrl,
+			# 			'datePublish':datePublish,
+			# 			'likeCount':likeCount,
+			# 			'authorProfileImageUrl':authorProfileImageUrl
+			# 			})
+
+		print('До Whiel'+'-'*50)
+		while ("nextPageToken" in data):
+			print('Начало нового цикла while')
+			data = self.get_data(videoId=self.videoId, maxResults=100, pageToken=data['nextPageToken'])
+			print(len(data['items']))
+			# data = youtube.commentThreads().list(part='snippet', videoId=ID, pageToken=data["nextPageToken"],
+                                             # maxResults='100', textFormat="plainText").execute()
+			for item in data["items"]:
+				text = item['snippet']['topLevelComment' ]['snippet']['textDisplay']
+				userName = item['snippet']['topLevelComment' ]['snippet']['authorDisplayName']
+				authorChannelUrl =  item['snippet']['topLevelComment' ]['snippet']['authorChannelUrl']
+				authorChannelId = item['snippet']['topLevelComment' ]['snippet']['authorChannelId']['value']
+				likeCount = item['snippet']['topLevelComment' ]['snippet']['likeCount']
+				datePublish =  item['snippet']['topLevelComment' ]['snippet']['publishedAt']
+				authorProfileImageUrl = item['snippet']['topLevelComment' ]['snippet']['authorProfileImageUrl']
+				comment.append({
+					'text':text,
+					'userName':userName,
+					'authorChannelId':authorChannelId,
+					'authorChannelUrl':authorChannelUrl,
+					'datePublish':datePublish,
+					'likeCount':likeCount,
+					'authorProfileImageUrl':authorProfileImageUrl
+					})
+				# totalReplyCount = item["snippet"]['totalReplyCount']
+
+				# if totalReplyCount > 0:
+				# 	print('totalReplyCount больше нуля ')
+				# 	parent = item["snippet"]['topLevelComment']["id"]
+				# 	# data2 = self.get_data(maxResults=100,parentId=parent)
+				# 	# print(len(data2['items']))
+				# 	data2 = build('youtube','v3', developerKey=token).comments().list(part='snippet',
+				# 	 maxResults='100', parentId=parent,textFormat="plainText").execute()
+				# 	for item in data2["items"]:
+				# 		text = item['snippet']['textDisplay']
+				# 		userName = item['snippet']['authorDisplayName']
+				# 		authorChannelUrl =  item['snippet']['authorChannelUrl']
+				# 		authorChannelId = item['snippet']['authorChannelId']['value']
+				# 		likeCount = item['snippet']['likeCount']
+				# 		datePublish =  item['snippet']['publishedAt']
+				# 		authorProfileImageUrl = item['snippet']['authorProfileImageUrl']
+				# 		comment.append({
+	   #              		'text':text,
+		  #               	'userName':userName,
+		  #               	'authorChannelId':authorChannelId,
+		  #               	'authorChannelUrl':authorChannelUrl,
+		  #               	'datePublish':datePublish,
+		  #               	'likeCount':likeCount,
+		  #               	'authorProfileImageUrl':authorProfileImageUrl
+				# 		})
 		return comment
-		# s = ''
-		# # results = self.data.get_data(self.videoId,self.n)[0]
-		# results = self.data.get_data(self.videoId,self.n)
-		# for i in range(1,self.n):
-		# 	text = results['items'][i]['snippet']['topLevelComment']['snippet']['textDisplay']
-		# 	s = s+text
-
-		# result  = re.findall(r"РЕЯ|[аА]тлас|[гГ]иперион|[дД]иона|[Ее]лена|[мМ]имас|[пП]андор[ау]|[рР]ея|[тТ]елесто|[Тт]ефия|[яЯ]пе[дт]",s)
-
-		# result = list(map(str.lower,result))
-		# wordfreq = {}
-		# for word in result:
-		# 	if word not in wordfreq:
-		# 		wordfreq[word] = 0
-			# wordfreq[word] += 1
-		return wordfreq,s
 
 	def get_df(self):
 		print('Начала работать get_df')
@@ -118,13 +174,28 @@ class Api:
 		# print(json.dumps(parsed,indent=4))
 		# with open('json.json','w') as file:
 		# 	json.dump(parsed,file,  indent = 2,ensure_ascii=False)
-
 def main():
 	
-	api = Api('https://www.youtube.com/watch?v=zwel95I7O88&list=PLA0M1Bcd0w8zo9ND-7yEFjoHBg_fzaQ-B&index=4&t=821s',50)
-	print(len(api.get_all_comments()))
-		# for comment in api.get_comment():	
-			# print(comment['userName'])
-				# print(name['userName'])
+	api = Api('https://www.youtube.com/watch?v=ypKzLl5YyXo',100)
+	# data2 = api.get_data(maxResults=100,parentId='UgzvJkt5VjEQDNed2294AaABAg')
+	# youtube = build('youtube','v3', developerKey=token)
+	# data2  = youtube.comments().list(part='snippet', maxResults='100', parentId='UgzxCQMrWHtz0Y6109l4AaABAg',textFormat="plainText").execute()
+	# print(data2)
+	# print(data2)
+	# for i in api.get_data('ypKzLl5YyXo',100)['items']:
+		# print(i["snippet"]['topLevelComment']["id"])
+	# print(nextPageToken in api.get_data('uA8bCNEuTZ0',100))
+	data = api.get_all_comments() 
+	p = 0
+	for i in data:
+		p += 1
+		print(p,'==',i)
+# def write_json(data):
+		# result = df.to_json(orient='split')
+		# parsed = json.loads(result)
+		# print(json.dumps(parsed,indent=4))
+		# with open('json.json','w') as file:
+			# json.dump(data,file,  indent = 2,ensure_ascii=False)
+		# print(p,'===',i)
 if __name__ == '__main__':
 	main()

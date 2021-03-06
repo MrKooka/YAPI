@@ -18,19 +18,22 @@ def app1_template():
 		n = request.form['n']
 		api = Api(url,n)
 		comments = api.get_all_comments()
-		return render_template('app1.html', dash_url = DashApp1.url_base,comments=comments)
+		total = len(comments)
+		return render_template('app1.html', dash_url = DashApp1.url_base,comments=comments,total=total)
 	q_comments = []
 	if q:
 		comments = Api.comments
 		for i in comments:
 			if q in i['text']:
 				q_comments.append(i)
-		return render_template('app1.html', dash_url = DashApp1.url_base,comments=q_comments)
+		total = len(q_comments)
+		return render_template('app1.html', dash_url = DashApp1.url_base,comments=q_comments,total=total)
 	
 	else: 
 		if hasattr(Api,'comments'):
 			comments = Api.comments
-			return render_template('app1.html', dash_url = DashApp1.url_base,comments=comments)
+			total = len(comments)
+			return render_template('app1.html', dash_url = DashApp1.url_base,comments=comments,total=total)
 		else:
 			pass 
 	return render_template('app1.html', dash_url = DashApp1.url_base)
