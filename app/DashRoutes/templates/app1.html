@@ -7,7 +7,15 @@
 <form action="{{ url_for('dash.app1_template') }}" method="POST">
   <input class="form-control" name = 'url' type="text">
   <input class="form-control" name = 'n' type="text">
-  <button type="submit" class="btn btn-primary">Sign in</button>
+
+ <div class="form-check">
+  <input class="form-check-input" type="checkbox"name='replice'  value="replice" id="flexCheckDefault">
+  <label class="form-check-label" for="flexCheckDefault">
+    Включить ответы на комментарии
+  </label>
+</div>
+
+<button type="submit" class="btn btn-primary">Sign in</button>
 
 </form>
 
@@ -23,9 +31,11 @@
   <div class="container">
     <div class="row justify-content-center align-items-center mt-3 col-11">
       <div class="form-group "> 
-        <label class="text-light mr-3">Шаблон</label>
+        <label class="text-dark mr-3">Шаблон</label>
         <input class="form-control " type="text" name="q" value="{{ request.args.get('q', '') }}"> 
+
       </div>
+
     </div>
   </div>
 
@@ -33,7 +43,7 @@
 <div class="container-fluid ">
   <div class="container col-8">
     <h5>Найдено результатов:{{total}}</h5>
-
+    <a class="btn btn-primary " href="{{ url_for('dash.reset_comments') }}" role="button">Link</a>
     <div class="row text-center ">
     {%for comment in comments%}
         <div class="card mb-3 ml-2 mt-5 bg-light text-dark" style="width: 500px">
