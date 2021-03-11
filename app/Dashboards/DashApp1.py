@@ -5,31 +5,81 @@ import dash_html_components as html
 from dash.dependencies import Input, Output,State
 import sys
 from pprint import pprint
-from api import Api
+from api import Api,Graph
 
 import dash_bootstrap_components as dbc
-
 url_base = '/dash/app1/'
+class SaveGraph:
+    def __get__(self,instance, owner):
+        return self.__value
 
+    def __set__(self, instance, value):
+        self.__value = value
 
+    def __delete__(self,obg):
+        del self.__value
 layout = html.Div([
-    dcc.Input(id='pattern', type='text'),
-    html.Button(id='submit-button-state', n_clicks=0, children='Submit'),
-    html.Div(id='output-state')
-])
+            dcc.Input(id='pattern', type='text'), 
+            html.Button(id='submit-button-state', n_clicks=0, children='Submit'),
+            html.Div(id='output-state')
+        ])
+class Layout:
+    layout  = SaveGraph()
 
-def Add_Dash(server):
-    app = dash.Dash(server=server, url_base_pathname=url_base)
-    apply_layout_with_auth(app, layout)
-
-    @app.callback(Output('output-state', 'children'),
-              Input('submit-button-state', 'n_clicks'),
-              State('pattern', 'value'))
-    def update_output(n_clicks,input1):
-        return u'''{} - {}'''.format(n_clicks,input1)
+    def __init__(self,fig=None):
+        self.layout = None
+        self.fig = fig
 
     
-    return app.server
+
+        # layout = html.Div([
+        #     dcc.Graph(
+        #         id='example-graph',
+        #         figure={
+        #         }
+
+        #     )
+        # ])
+           
+        self.layout = layout
+
+class Dash_app:
+    def __init__(self,server, layout=None):
+        self.server = server
+        self.layout = layout
+        # self.dash_app =self.get_dash_app()
+
+    def get_dash_app(self):
+        app = dash.Dash(server=self.server, url_base_pathname=url_base,external_stylesheets=[dbc.themes.BOOTSTRAP])
+        graph = Graph()
+
+
+        layout = html.Div([
+            dbc.Input(id="pattern",  type="text"),
+            dbc.Button(id="submit-button-state",n_clicks=0, color="primary mt-2",children='Найти', className="mr-1"),
+            dcc.Graph(id="bar-chart"),
+        ])
+        @app.callback(Output('bar-chart', 'figure'),
+              Input('submit-button-state', 'n_clicks'),
+              State('pattern', 'value'))
+        def update_output(n_clicks,input1):
+            fig = graph.make_graph(input1)
+            return fig
+            
+        apply_layout_with_auth(app, layout)
+
+        return app.server
+
+    # def make_loyout(self):
+        
+
+        # layout = html.Div([
+        #     dbc.Input(id="input", placeholder="Type something...", type="text"),
+        #     dcc.Graph(id="bar-chart"),
+        # ])
+        # return layout
+
+    
 
 # layout = html.Div([
     
@@ -44,22 +94,14 @@ def Add_Dash(server):
 # ])
 
 # def Add_Dash(server):
-#     app = dash.Dash(server=server, url_base_pathname=url_base,external_stylesheets=[dbc.themes.BOOTSTRAP])
+#     app = dash.Dash(server=server, url_base_pathname=url_base)
 #     apply_layout_with_auth(app, layout)
 
-#     # @app.callback(
-#     #         Output('target', 'children'),
-#     #         [Input('input_text', 'value')])
-#     # def callback_filter(value):
-#     #     return 'your input is {}'.format(value)
-        
-#     @app.callback(
-#         Output('target','children'),
-#         Input('my-button','n_clicks'),
-#         State('count','count'),     
-#         State('url','url'),
-# )
-#     def callback_get_comments(n):
-#         api = Api(url,count)
-#         print(n)
+#     @app.callback(Output('output-state', 'children'),
+#               Input('submit-button-state', 'n_clicks'),
+#               State('pattern', 'value'))
+#     def update_output(n_clicks,input1):
+#         return u'''{} - {}'''.format(n_clicks,input1)
+
+    
 #     return app.server

@@ -7,7 +7,8 @@ from flask import Flask
 from flask_migrate import Migrate,MigrateCommand
 from flask_script import Manager
 from flask_login import LoginManager
-from Dashboards import DashApp1
+from Dashboards.DashApp1 import Dash_app
+# from Dashboards import DashApp1
 class Config:
 	SECRET_KEY = 'key'
 	SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:1@localhost:27017/gshop'
@@ -15,9 +16,9 @@ class Config:
 
 class App:
 	def __init__(self):
-		self.app = app = Flask(__name__, static_folder='base/static',template_folder = 'base/templates')
+		self.app = Flask(__name__, static_folder='base/static',template_folder = 'base/templates')
 		self.app.config.from_object(Config)
-		self.db = db = SQLAlchemy(self.app)
+		self.db = SQLAlchemy(self.app)
 
 	def register_blueprints(self):
 		from setting.routes  import setting
@@ -28,7 +29,8 @@ class App:
 		self.app.register_blueprint(base,url_prefix='')
 		self.app.register_blueprint(setting,url_prefix='/setting')
 		self.app.register_blueprint(dash,url_prefix='/DashExample')
-		app = DashApp1.Add_Dash(self.app)
+		Dash_app(self.app).get_dash_app()
+		# DashApp1.Add_Dash(self.app)
 
 	def login_manager(self):
 		login_manager = LoginManager()

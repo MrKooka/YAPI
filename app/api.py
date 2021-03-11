@@ -4,8 +4,9 @@ from pprint import pprint
 import re
 import pandas as pd
 import plotly.express as px
+from collections import Counter
 token = 'AIzaSyDl__LeDHysLbzRCOfT6S5ephdIzgFA8Iw'
-
+youtube = build('youtube','v3', developerKey=token)
 class SaveComments:
 	def __get__(self,instance, owner):
 		return self.__value
@@ -21,31 +22,50 @@ class Api:
 	comments = SaveComments()
 
 	def __init__(self,url,maxResults,replice=None):
-		self.videoId = re.findall(r'\.(com|be)/(watch\?v=|embed/|v/|.+\?v=)?([^&=%\?]{11})',url)[0][-1]
+		self.__videoId = re.findall(r'\.(com|be)/(watch\?v=|embed/|v/|.+\?v=)?([^&=%\?]{11})',url)[0][-1]
 		self.token = token
 		self.maxResults = maxResults 
 		self.comments = None
 		self.replice = replice
+	def __check_videoId(self,maxResults,videoId):
+		
+			results  = youtube.commentThreads().list(pageToken = pageToken,
+													part="snippet",
+													videoId=self.__videoId,
+													order='relevance',
+													maxResults = self.maxResults,
+													textFormat = 'plainText'
+													).execute()
 
+		return results
 	def get_data(self,maxResults,videoId=None,parentId=None,pageToken=None):
 		print('get_data started working')
-		youtube = build('youtube','v3', developerKey=token)
-		results = youtube.commentThreads().list(pageToken = pageToken,
-												part="snippet",
-												videoId=self.videoId,
-												order='relevance',
-												maxResults = self.maxResults,
-												textFormat = 'plainText'
-												).execute()
+		results = Api.__check_videoId(self.maxResults,videoId=self.__videoId,parentId=None,pageToken=None)
 		print('get_data is done')
 		return results
+
+
+	# @property
+	# def maxResults(self):
+	# 	print('Сработал get maxResults')
+	# 	return self.__maxResults
+	
+	# @maxResults.setter
+	# def maxResults(self,maxResults):
+	# 	print('сработал setter maxResults')
+	# 	try:
+	# 		int(maxResults)
+	# 		self.__maxResults = maxResults
+	# 	except:
+	# 		raise TypeError
+			
 
 	def parse_data(self):
 		print('parse_data started working')
 		
 		comments = []
 
-		data = self.get_data(self.videoId,self.maxResults)
+		data = self.get_data(self.__videoId,self.maxResults)
 		for item in data["items"]:
 			text = item['snippet']['topLevelComment' ]['snippet']['textDisplay']
 			userName = item['snippet']['topLevelComment' ]['snippet']['authorDisplayName']
@@ -77,7 +97,7 @@ class Api:
 
 		while ("nextPageToken" in data):
 			print('Start of new while'+'-'*50)
-			data = self.get_data(videoId=self.videoId, maxResults=100, pageToken=data['nextPageToken'])
+			data = self.get_data(videoId=self.__videoId, maxResults=100, pageToken=data['nextPageToken'])
 
 			for item in data["items"]:
 				text = item['snippet']['topLevelComment' ]['snippet']['textDisplay']
@@ -135,18 +155,6 @@ class Api:
 					return comments
 		return comments
 
-	def get_df(self):
-		print('get_df started working')
-		wordfreq = self.parse_data()[0]
-		dfl = []
-		for k in wordfreq:
-			dfl.append( (k,wordfreq[k]) )
-
-		df = pd.DataFrame(dfl)
-
-		print('get_df is done')
-		return df
-		# return self.make_graf(df)
 
 	def get_all_comments(self):
 		print('get_text started working')
@@ -154,34 +162,46 @@ class Api:
 		print('get_text is done')
 		return self.comments
 
-	# def filter_comment(self,comments,pattern=None):
-		# print(comments)
 
-
-	# def make_graf(self,df):
-	# 	return px.bar(df,x=0,y=1)
 	# def write_json(self,df):
 	# 	result = df.to_json(orient='split')
 	# 	parsed = json.loads(result)
 		# print(json.dumps(parsed,indent=4))
 		# with open('json.json','w') as file:
-		# 	json.dump(parsed,file,  indent = 2,ensure_ascii=False)
+		 # 	json.dump(parsed,file,  indent = 2,ensure_ascii=False)
+
+
+
+class Graph(Api):
+	def __init__(self):
+		self.pattern = None
+
+	def _make_df(self,pattern):
+		pattern = pattern.replace(',','|')
+		text = ''
+		for i in self.comments:
+			text = text + i['text']
+
+		result  = re.findall('{}'.format(pattern),text) # list of words found by pattern
+		calculated_result = Counter(result).most_common() #[(word_1,1),(word_2,3)] - a list of the occurrence of each word
+		df = pd.DataFrame(calculated_result)
+
+		return df
+
+	def make_graph(self,pattern):
+		self.pattern = pattern
+		df = self._make_df(pattern)
+		fig = px.bar(df,x=0,y=1)
+
+		return fig
+
 def main():
 	
-	api = Api('https://www.youtube.com/watch?v=ypKzLl5YyXo',100)
-	# data2 = api.get_data(maxResults=100,parentId='UgzvJkt5VjEQDNed2294AaABAg')
-	# youtube = build('youtube','v3', developerKey=token)
-	# data2  = youtube.comments().list(part='snippet', maxResults='100', parentId='UgzxCQMrWHtz0Y6109l4AaABAg',textFormat="plainText").execute()
-	# print(data2)
-	# print(data2)
-	# for i in api.get_data('ypKzLl5YyXo',100)['items']:
-		# print(i["snippet"]['topLevelComment']["id"])
-	# print(nextPageToken in api.get_data('uA8bCNEuTZ0',100))
+	api = Api('https://www.youtube.com/watch?v=aSP97Pk6ojI',10)
+
 	data = api.get_all_comments() 
-	p = 0
-	for i in data:
-		p += 1
-		print(p,'==',i)
+	g = Graph()
+	print(g._make_df())
 # def write_json(data):
 		# result = df.to_json(orient='split')
 		# parsed = json.loads(result)
