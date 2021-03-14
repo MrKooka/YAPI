@@ -1,4 +1,5 @@
 # YAPI 
 
 Yotube data API project    
-for runing project `esdf`
+1.Go to directory
+2.To run the application, run the command :`python3 wsgi.py`
