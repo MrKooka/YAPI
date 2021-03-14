@@ -4,6 +4,7 @@ from pprint import pprint
 import re
 import pandas as pd
 import plotly.express as px
+from wtforms.validators import ValidationError
 from collections import Counter
 token = 'AIzaSyDl__LeDHysLbzRCOfT6S5ephdIzgFA8Iw'
 youtube = build('youtube','v3', developerKey=token)
@@ -22,68 +23,57 @@ class Api:
 	comments = SaveComments()
 
 	def __init__(self,url,maxResults,replice=None):
-		self.__videoId = re.findall(r'\.(com|be)/(watch\?v=|embed/|v/|.+\?v=)?([^&=%\?]{11})',url)[0][-1]
+		self.videoId = re.findall(r'\.(com|be)/(watch\?v=|embed/|v/|.+\?v=)?([^&=%\?]{11})',url)[0][-1]
 		self.token = token
 		self.maxResults = maxResults 
 		self.comments = None
 		self.replice = replice
-	def __check_videoId(self,maxResults,videoId):
-		
-			results  = youtube.commentThreads().list(pageToken = pageToken,
-													part="snippet",
-													videoId=self.__videoId,
-													order='relevance',
-													maxResults = self.maxResults,
-													textFormat = 'plainText'
-													).execute()
 
-		return results
-	def get_data(self,maxResults,videoId=None,parentId=None,pageToken=None):
+
+	def get_data(self,maxResults=None,videoId=None,parentId=None,pageToken=None):
 		print('get_data started working')
-		results = Api.__check_videoId(self.maxResults,videoId=self.__videoId,parentId=None,pageToken=None)
+		results  = youtube.commentThreads().list(pageToken = pageToken,
+												part="snippet",
+												videoId=self.videoId,
+												order='relevance',
+												maxResults = self.maxResults,
+												textFormat = 'plainText'
+												).execute()
 		print('get_data is done')
 		return results
-
-
-	# @property
-	# def maxResults(self):
-	# 	print('Сработал get maxResults')
-	# 	return self.__maxResults
-	
-	# @maxResults.setter
-	# def maxResults(self,maxResults):
-	# 	print('сработал setter maxResults')
-	# 	try:
-	# 		int(maxResults)
-	# 		self.__maxResults = maxResults
-	# 	except:
-	# 		raise TypeError
-			
 
 	def parse_data(self):
 		print('parse_data started working')
 		
 		comments = []
 
-		data = self.get_data(self.__videoId,self.maxResults)
+		data = self.get_data()
+		
 		for item in data["items"]:
-			text = item['snippet']['topLevelComment' ]['snippet']['textDisplay']
-			userName = item['snippet']['topLevelComment' ]['snippet']['authorDisplayName']
-			authorChannelUrl =  item['snippet']['topLevelComment' ]['snippet']['authorChannelUrl']
 			authorChannelId = item['snippet']['topLevelComment' ]['snippet']['authorChannelId']['value']
-			likeCount = item['snippet']['topLevelComment' ]['snippet']['likeCount']
-			datePublish =  item['snippet']['topLevelComment' ]['snippet']['publishedAt']
+			authorChannelUrl =  item['snippet']['topLevelComment' ]['snippet']['authorChannelUrl']
+			authorDisplayName = item['snippet']['topLevelComment' ]['snippet']['authorDisplayName']
 			authorProfileImageUrl = item['snippet']['topLevelComment' ]['snippet']['authorProfileImageUrl']
-
+			canRate =  item['snippet']['topLevelComment' ]['snippet']['canRate']
+			likeCount = item['snippet']['topLevelComment' ]['snippet']['likeCount']
+			textDisplay = item['snippet']['topLevelComment' ]['snippet']['textDisplay']
+			textOriginal = item['snippet']['topLevelComment' ]['snippet']['textOriginal']
+			updatedAt = item['snippet']['topLevelComment' ]['snippet']['updatedAt']
+			publishedAt =  item['snippet']['topLevelComment' ]['snippet']['publishedAt']
+			totalReplyCount = item['snippet']['totalReplyCount']
 			comments.append({
-				'text':text,
-				'userName':userName,
 				'authorChannelId':authorChannelId,
 				'authorChannelUrl':authorChannelUrl,
-				'datePublish':datePublish,
+				'authorDisplayName':authorDisplayName,
+				'authorProfileImageUrl':authorProfileImageUrl,
+				'canRate':canRate,
 				'likeCount':likeCount,
-				'authorProfileImageUrl':authorProfileImageUrl
-				})
+				'textDisplay':textDisplay,
+				'textOriginal':textOriginal,
+				'updatedAt':updatedAt,
+				'publishedAt':publishedAt,
+				'totalReplyCount':totalReplyCount,
+			})
 
 			
 			# ckecking a replice checkbox 
@@ -97,25 +87,33 @@ class Api:
 
 		while ("nextPageToken" in data):
 			print('Start of new while'+'-'*50)
-			data = self.get_data(videoId=self.__videoId, maxResults=100, pageToken=data['nextPageToken'])
+			data = self.get_data(videoId=self.videoId, maxResults=100, pageToken=data['nextPageToken'])
 
 			for item in data["items"]:
-				text = item['snippet']['topLevelComment' ]['snippet']['textDisplay']
-				userName = item['snippet']['topLevelComment' ]['snippet']['authorDisplayName']
-				authorChannelUrl =  item['snippet']['topLevelComment' ]['snippet']['authorChannelUrl']
 				authorChannelId = item['snippet']['topLevelComment' ]['snippet']['authorChannelId']['value']
-				likeCount = item['snippet']['topLevelComment' ]['snippet']['likeCount']
-				datePublish =  item['snippet']['topLevelComment' ]['snippet']['publishedAt']
+				authorChannelUrl =  item['snippet']['topLevelComment' ]['snippet']['authorChannelUrl']
+				authorDisplayName = item['snippet']['topLevelComment' ]['snippet']['authorDisplayName']
 				authorProfileImageUrl = item['snippet']['topLevelComment' ]['snippet']['authorProfileImageUrl']
+				canRate =  item['snippet']['topLevelComment' ]['snippet']['canRate']
+				likeCount = item['snippet']['topLevelComment' ]['snippet']['likeCount']
+				textDisplay = item['snippet']['topLevelComment' ]['snippet']['textDisplay']
+				textOriginal = item['snippet']['topLevelComment' ]['snippet']['textOriginal']
+				updatedAt = item['snippet']['topLevelComment' ]['snippet']['updatedAt']
+				publishedAt =  item['snippet']['topLevelComment' ]['snippet']['publishedAt']
+				totalReplyCount = item['snippet']['totalReplyCount']
 				comments.append({
-					'text':text,
-					'userName':userName,
 					'authorChannelId':authorChannelId,
 					'authorChannelUrl':authorChannelUrl,
-					'datePublish':datePublish,
+					'authorDisplayName':authorDisplayName,
+					'authorProfileImageUrl':authorProfileImageUrl,
+					'canRate':canRate,
 					'likeCount':likeCount,
-					'authorProfileImageUrl':authorProfileImageUrl
-					})
+					'textDisplay':textDisplay,
+					'textOriginal':textOriginal,
+					'updatedAt':updatedAt,
+					'publishedAt':publishedAt,
+					'totalReplyCount':totalReplyCount,
+				})
 				if len(comments) >= int(self.maxResults):
 					return comments
 
@@ -135,21 +133,28 @@ class Api:
 			data2 = build('youtube','v3', developerKey=token).comments().list(part='snippet',
 			 maxResults='100', parentId=parent,textFormat="plainText").execute()
 			for item in data2["items"]:
-				text = item['snippet']['textDisplay']
-				userName = item['snippet']['authorDisplayName']
-				authorChannelUrl =  item['snippet']['authorChannelUrl']
 				authorChannelId = item['snippet']['authorChannelId']['value']
-				likeCount = item['snippet']['likeCount']
-				datePublish =  item['snippet']['publishedAt']
+				authorChannelUrl =  item['snippet']['authorChannelUrl']
+				authorDisplayName = item['snippet']['authorDisplayName']
 				authorProfileImageUrl = item['snippet']['authorProfileImageUrl']
+				canRate = item['snippet']['canRate']
+				likeCount = item['snippet']['likeCount']
+				textDisplay = item['snippet']['textDisplay']
+				textOriginal = item['snippet']['textOriginal']
+				updatedAt = item['snippet']['updatedAt']
+				publishedAt =  item['snippet']['publishedAt']
 				comments.append({
-            		'text':text,
-                	'userName':userName,
                 	'authorChannelId':authorChannelId,
                 	'authorChannelUrl':authorChannelUrl,
-                	'datePublish':datePublish,
+                	'authorDisplayName':authorDisplayName,
+                	'authorProfileImageUrl':authorProfileImageUrl,
+                	'canRate':canRate,
                 	'likeCount':likeCount,
-                	'authorProfileImageUrl':authorProfileImageUrl
+            		'textDisplay':textDisplay,
+            		'textOriginal':textOriginal,
+                	'updatedAt':updatedAt,
+                	'publishedAt':publishedAt,
+                	'totalReplyCount':''
 				})
 				if len(comments) >= int(self.maxResults):
 					return comments
@@ -161,14 +166,10 @@ class Api:
 		self.comments = self.parse_data() #parse_data() return a list of comment date  
 		print('get_text is done')
 		return self.comments
-
-
-	# def write_json(self,df):
-	# 	result = df.to_json(orient='split')
-	# 	parsed = json.loads(result)
-		# print(json.dumps(parsed,indent=4))
-		# with open('json.json','w') as file:
-		 # 	json.dump(parsed,file,  indent = 2,ensure_ascii=False)
+	@staticmethod
+	def reset_comments():
+		Api.comments = None
+		return None
 
 
 
@@ -177,10 +178,11 @@ class Graph(Api):
 		self.pattern = None
 
 	def _make_df(self,pattern):
+
 		pattern = pattern.replace(',','|')
 		text = ''
 		for i in self.comments:
-			text = text + i['text']
+			text = text + i['textDisplay']
 
 		result  = re.findall('{}'.format(pattern),text) # list of words found by pattern
 		calculated_result = Counter(result).most_common() #[(word_1,1),(word_2,3)] - a list of the occurrence of each word

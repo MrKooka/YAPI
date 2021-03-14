@@ -13,6 +13,8 @@ class Config:
 	SECRET_KEY = 'key'
 	SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:1@localhost:27017/gshop'
 	SQLALCHEMY_TRACK_MODIFICATIONS = True
+	UPLOAD_FOLDER = '/media/alex/Data1/two/YAPI3/app/DashRoutes/csv_files'
+	SEND_FILE_MAX_AGE_DEFAULT = 0
 
 class App:
 	def __init__(self):
