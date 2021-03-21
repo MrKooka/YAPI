@@ -88,32 +88,34 @@ class Api:
 		while ("nextPageToken" in data):
 			print('Start of new while'+'-'*50)
 			data = self.get_data(videoId=self.videoId, maxResults=100, pageToken=data['nextPageToken'])
-
-			for item in data["items"]:
-				authorChannelId = item['snippet']['topLevelComment' ]['snippet']['authorChannelId']['value']
-				authorChannelUrl =  item['snippet']['topLevelComment' ]['snippet']['authorChannelUrl']
-				authorDisplayName = item['snippet']['topLevelComment' ]['snippet']['authorDisplayName']
-				authorProfileImageUrl = item['snippet']['topLevelComment' ]['snippet']['authorProfileImageUrl']
-				canRate =  item['snippet']['topLevelComment' ]['snippet']['canRate']
-				likeCount = item['snippet']['topLevelComment' ]['snippet']['likeCount']
-				textDisplay = item['snippet']['topLevelComment' ]['snippet']['textDisplay']
-				textOriginal = item['snippet']['topLevelComment' ]['snippet']['textOriginal']
-				updatedAt = item['snippet']['topLevelComment' ]['snippet']['updatedAt']
-				publishedAt =  item['snippet']['topLevelComment' ]['snippet']['publishedAt']
-				totalReplyCount = item['snippet']['totalReplyCount']
-				comments.append({
-					'authorChannelId':authorChannelId,
-					'authorChannelUrl':authorChannelUrl,
-					'authorDisplayName':authorDisplayName,
-					'authorProfileImageUrl':authorProfileImageUrl,
-					'canRate':canRate,
-					'likeCount':likeCount,
-					'textDisplay':textDisplay,
-					'textOriginal':textOriginal,
-					'updatedAt':updatedAt,
-					'publishedAt':publishedAt,
-					'totalReplyCount':totalReplyCount,
-				})
+			try:
+				for item in data["items"]:
+					authorChannelId = item['snippet']['topLevelComment' ]['snippet']['authorChannelId']['value']
+					authorChannelUrl =  item['snippet']['topLevelComment' ]['snippet']['authorChannelUrl']
+					authorDisplayName = item['snippet']['topLevelComment' ]['snippet']['authorDisplayName']
+					authorProfileImageUrl = item['snippet']['topLevelComment' ]['snippet']['authorProfileImageUrl']
+					canRate =  item['snippet']['topLevelComment' ]['snippet']['canRate']
+					likeCount = item['snippet']['topLevelComment' ]['snippet']['likeCount']
+					textDisplay = item['snippet']['topLevelComment' ]['snippet']['textDisplay']
+					textOriginal = item['snippet']['topLevelComment' ]['snippet']['textOriginal']
+					updatedAt = item['snippet']['topLevelComment' ]['snippet']['updatedAt']
+					publishedAt =  item['snippet']['topLevelComment' ]['snippet']['publishedAt']
+					totalReplyCount = item['snippet']['totalReplyCount']
+					comments.append({
+						'authorChannelId':authorChannelId,
+						'authorChannelUrl':authorChannelUrl,
+						'authorDisplayName':authorDisplayName,
+						'authorProfileImageUrl':authorProfileImageUrl,
+						'canRate':canRate,
+						'likeCount':likeCount,
+						'textDisplay':textDisplay,
+						'textOriginal':textOriginal,
+						'updatedAt':updatedAt,
+						'publishedAt':publishedAt,
+						'totalReplyCount':totalReplyCount,
+					})
+			except:
+				pass
 				if len(comments) >= int(self.maxResults):
 					return comments
 
