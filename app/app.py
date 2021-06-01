@@ -20,7 +20,6 @@ class App:
 	def __init__(self):
 		self.app = Flask(__name__, static_folder='base/static',template_folder = 'base/templates')
 		self.app.config.from_object(Config)
-		self.db = SQLAlchemy(self.app)
 
 	def register_blueprints(self):
 		from setting.routes  import setting
@@ -34,18 +33,6 @@ class App:
 		Dash_app(self.app).get_dash_app()
 		# DashApp1.Add_Dash(self.app)
 
-	def login_manager(self):
-		login_manager = LoginManager()
-		login_manager.init_app(self.app)
-		login_manager.login_viwe = 'login'
-		return login_manager
-
-	def migrate(self):
-		migrate = Migrate(self.app,self.db)
-		manager = Manager(self.app)
-		manager.add_command('db',MigrateCommand)
-		return manager
-		
 	def get_app(self):
 		return self.app
 
