@@ -6,7 +6,7 @@ import pandas as pd
 import plotly.express as px
 from wtforms.validators import ValidationError
 from collections import Counter
-token = 'AIzaSyDl__LeDHysLbzRCOfT6S5ephdIzgFA8Iw'
+token = ''
 youtube = build('youtube','v3', developerKey=token)
 class SaveComments:
 	def __get__(self,instance, owner):
